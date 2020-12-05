@@ -42,29 +42,27 @@
         return i + 1;
       };
 
-      function executar(func, tamanho, tipo) {
-        const array = gerarArray(tamanho);
+      function executar(func, origin, tipo) {
+        const array = origin.map(a => a);
 
-        console.log(array);
         console.time(tipo);
         func(array, 0, array.length - 1);
         console.timeEnd(tipo);
-        console.log(array);
       }
       // A importação de um módulo WASM ocorre asincronamente
       // Por isso precisamos esperar ele ser importado para poder executar as funções
-      import { default as wasm, quick_sort, testeaa } from "./pkg/teste_wasm.js";
+      import { default as wasm, quick_sort } from "./pkg/teste_wasm.js";
 
       wasm().then((module) => {
-        const tamanho = 100000;
-        alert("Wasm carregou");
-        console.log('Tamanho do array:', tamanho);
+        const tamanho = 10000;
+        const array = gerarArray(tamanho);
+        console.log(array);
 
-        console.log('RUST')
-        executar(quick_sort, tamanho, 'RUST')
+        // console.log('RUST')
+        executar(quick_sort, array, 'RUST')
 
-        console.log('Javascript');
-        executar(quickSortJs, tamanho, 'JS');
+        // console.log('Javascript');
+        executar(quickSortJs, array, 'JS');
 
       });
     </script>

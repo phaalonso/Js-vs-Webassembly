@@ -36,17 +36,6 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn testeaa(array: &mut [i32], start: isize, end: isize) {
-    quick_sort(array, start, end);
-    // array.sort();
-
-    for elem in array {
-        log(&elem.to_string());
-        
-    }
-}
-
-#[wasm_bindgen]
 pub fn quick_sort(array: &mut [i32], start: isize, end: isize) {
     // log_many3("Quick sort", &start.to_string(), &end.to_string());
     if start < end {
