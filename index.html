@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>PREC6</title>
+  </head>
+
+  <body>
+    <script type="module">
+      const gerarArray = (tamanho) => {
+        return Int32Array.from({ length: tamanho }, () =>
+          Math.floor(Math.random() * tamanho)
+        );
+      }
+
+      const swap = (array, a, b) => {
+        let temp = array[a];
+        array[a] = array[b];
+        array[b] = temp;
+      };
+
+      const quickSortJs = (array, start, end) => {
+        if (start < end) {
+          const pivo = partition(array, start, end);
+
+          quickSortJs(array, start, pivo - 1);
+          quickSortJs(array, pivo + 1, end);
+        }
+      };
+
+      const partition = (array, start, end) => {
+        const pivot = array[end];
+        let i = start - 1;
+
+        for (let j = start; j <= end -1; j++) {
+          if (array[j] <= pivot) {
+            i++;
+            swap(array, i, j);
+          }
+        }
+        swap(array, i +1, end);
+        return i + 1;
+      };
+
+      function executar(func, tamanho, tipo) {
+        const array = gerarArray(tamanho);
+
+        console.log(array);
+        console.time(tipo);
+        func(array, 0, array.length - 1);
+        console.timeEnd(tipo);
+        console.log(array);
+      }
+      // A importação de um módulo WASM ocorre asincronamente
+      // Por isso precisamos esperar ele ser importado para poder executar as funções
+      import { default as wasm, quick_sort, testeaa } from "./pkg/teste_wasm.js";
+
+      wasm().then((module) => {
+        const tamanho = 100000;
+        alert("Wasm carregou");
+        console.log('Tamanho do array:', tamanho);
+
+        console.log('RUST')
+        executar(quick_sort, tamanho, 'RUST')
+
+        console.log('Javascript');
+        executar(quickSortJs, tamanho, 'JS');
+
+      });
+    </script>
+  </body>
+</html>
