@@ -7,11 +7,16 @@
 
   <body>
     <script type="module">
+      const tabela = document.getElementById("tabela").children[1];
+      console.log(tabela);
+
+      const button = document.getElementById("executar");
+
       const gerarArray = (tamanho) => {
         return Int32Array.from({ length: tamanho }, () =>
           Math.floor(Math.random() * tamanho)
         );
-      }
+      };
 
       const swap = (array, a, b) => {
         let temp = array[a];
@@ -32,39 +37,116 @@
         const pivot = array[end];
         let i = start - 1;
 
-        for (let j = start; j <= end -1; j++) {
+        for (let j = start; j <= end - 1; j++) {
           if (array[j] <= pivot) {
             i++;
             swap(array, i, j);
           }
         }
-        swap(array, i +1, end);
+        swap(array, i + 1, end);
         return i + 1;
       };
 
       function executar(func, origin, tipo) {
-        const array = origin.map(a => a);
+        const array = origin.map((a) => a);
 
-        console.time(tipo);
+        var t0 = performance.now();
         func(array, 0, array.length - 1);
-        console.timeEnd(tipo);
+        var t1 = performance.now();
+        return t1 - t0;
       }
+
+      /**
+       * Lima o contador, e reseta a tabela
+       */
+      function resetarTabela() {
+        quantidade = 0;
+
+        tabela.childNodes.forEach(ch => ch.remove());
+      }
+
+      document.getElementById('resetar').onclick = resetarTabela;
+
       // A importação de um módulo WASM ocorre asincronamente
       // Por isso precisamos esperar ele ser importado para poder executar as funções
       import { default as wasm, quick_sort } from "./pkg/teste_wasm.js";
 
+      let quantidade = 0;
       wasm().then((module) => {
-        const tamanho = 10000;
-        const array = gerarArray(tamanho);
-        console.log(array);
+        button.disabled = false;
+        console.log('Webassembly carregado');
 
-        // console.log('RUST')
-        executar(quick_sort, array, 'RUST')
+        document.getElementById('resetar').disabled = false;
 
-        // console.log('Javascript');
-        executar(quickSortJs, array, 'JS');
+        const executarComparador = (tamanho) => {
+          const array = gerarArray(tamanho);
+          console.log(array);
 
+          // console.log('RUST')
+          const tempoRS = executar(quick_sort, array, "RUST");
+
+          // console.log(array);
+          // console.log('Javascript');
+          const tempoJS = executar(quickSortJs, array, "JS");
+
+          const row = tabela.insertRow();
+          row.insertCell(0).innerHTML = quantidade.toString();
+          row.insertCell(1).innerHTML = tempoJS.toString().replace(".", ",");
+          row.insertCell(2).innerHTML = tempoRS.toString().replace(".", ",");
+        };
+
+        const counter = document.getElementById("counter");
+
+        /**
+         * Quando o botão relacionado a execução do código for clicado
+         * ele irá excecutalo de acordo com o número de vezes presente no input tamanho
+         */
+        button.onclick = () => {
+          const tamanho = Number.parseInt(
+            document.getElementById("tamanho").value
+          );
+
+          const vezes = Number.parseInt(document.getElementById("vezes").value);
+
+          console.log("Tamanho: " + tamanho);
+          console.log("Vezes: " + vezes);
+
+          for (let i = 0; i < vezes; i++) {
+            quantidade++;
+            counter.textContent = quantidade;
+            executarComparador(tamanho);
+          }
+        };
       });
     </script>
+
+    <div id="main">
+      <div id="lerTamanho">
+        Tamanho do vetor:
+        <input type="number" name="tamanho" value="1000" id="tamanho" />
+      </div>
+      <div id="lerVezes">
+        Vezes:
+        <input type="number" name="vezes" value="1000" id="vezes" />
+      </div>
+      <button id="executar" disabled>Executar</button>
+      <button id="resetar" disabled >Resetar</button>
+      <div id="mostrarCounter">
+        Counter:
+        <span id="counter"></span>
+      </div>
+
+      <br />
+      <table id="tabela" border="1">
+        <thead>
+          <tr>
+            <th>Contador</th>
+            <th>JS</th>
+            <th>WebAssembly</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </body>
 </html>
